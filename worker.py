@@ -40,6 +40,7 @@ class Worker(threading.Thread):
         self._stop = threading.Event()
         self._kp_buffers: dict[int, KeypointBuffer] = {}
         self._face_buffers: dict[int, FaceBuffer] = {}
+        self._last_face_seen_ts: dict[int, float] = {}
 
     def stop(self) -> None:
         self._stop.set()
@@ -78,6 +79,8 @@ class Worker(threading.Thread):
                     log.exception("Face detector failed")
                     faces = []
                 faces_by_track = self._match_faces(faces, detections)
+                for tid in faces_by_track:
+                    self._last_face_seen_ts[tid] = ts
 
             per_track_probs: dict[int, dict[str, float]] = {}
             per_track_features: dict[int, dict[str, float]] = {}
@@ -129,6 +132,17 @@ class Worker(threading.Thread):
                     merged_features.update(face_score.features)
                     window_sec = max(window_sec, face_score.window_seconds)
 
+                # Phantom-track guard: if no face has been matched to this
+                # track within face_match_ttl_seconds, attenuate every emitted
+                # probability so the chart caps at no_face_attenuation.
+                last_face_ts = self._last_face_seen_ts.get(det.track_id, float("-inf"))
+                if (
+                    merged_probs
+                    and ts - last_face_ts > self.settings.face_match_ttl_seconds
+                ):
+                    atten = self.settings.no_face_attenuation
+                    merged_probs = {k: v * atten for k, v in merged_probs.items()}
+
                 per_track_probs[det.track_id] = merged_probs
                 per_track_features[det.track_id] = merged_features
                 per_track_window[det.track_id] = window_sec
@@ -146,6 +160,7 @@ class Worker(threading.Thread):
             for tid in evicted:
                 self._kp_buffers.pop(tid, None)
                 self._face_buffers.pop(tid, None)
+                self._last_face_seen_ts.pop(tid, None)
                 self.body_scorer.forget(tid)
                 if self.face_scorer is not None:
                     self.face_scorer.forget(tid)

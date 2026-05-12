@@ -123,9 +123,21 @@ class BodyScorer:
         denom = float(np.linalg.norm(ba) * np.linalg.norm(bc)) + 1e-6
         return float(np.dot(ba, bc) / denom)
 
+    @staticmethod
+    def _median3(x: np.ndarray) -> np.ndarray:
+        """3-sample temporal median along axis 0. Endpoints kept as-is."""
+        if x.shape[0] < 3:
+            return x
+        out = x.copy()
+        out[1:-1] = np.median(np.stack([x[:-2], x[1:-1], x[2:]]), axis=0)
+        return out
+
     # ------ feature extraction ------------------------------------------
     def _features(self, buf: KeypointBuffer) -> dict[str, float]:
         times, kxy, kconf, bbox = buf.as_arrays()
+        # Kill single-frame YOLO keypoint outliers before downstream features.
+        # 300 ms window at 10 FPS preserves rhythm >= 3.3 Hz unchanged.
+        kxy = self._median3(kxy)
         norm = normalize_keypoints(kxy, kconf, bbox)
         s = self.s
 

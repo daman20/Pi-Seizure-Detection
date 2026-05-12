@@ -78,6 +78,13 @@ class Settings(BaseSettings):
     ema_alpha: float = 0.95
     track_ttl_seconds: float = 2.0
 
+    # Phantom-track guard: when a YOLO track has no recently matched face,
+    # its emitted probabilities are multiplied by no_face_attenuation. Real
+    # tracks with a visible face are unaffected; wall-art / chair phantoms
+    # are capped below the alert threshold.
+    face_match_ttl_seconds: float = 3.0
+    no_face_attenuation: float = 0.3
+
     # --- per-type logit weights (uncalibrated heuristic priors) ----------
     # tonic_clonic: rhythmic 3-5 Hz + bilateral motion
     w_tc_rhythmic: float = 5.0
