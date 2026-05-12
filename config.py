@@ -122,11 +122,14 @@ class Settings(BaseSettings):
     w_ve_bias: float = -2.4
 
     # eyelid_myoclonia: 3-6 Hz eyelid jerking.
-    # Calibrated on a real eyelid-myoclonia recording (eyelid-seizure.MOV):
-    # baseline p95 → 0.20, ictal p50 → 0.75.
-    w_em_rhythmic: float = 19.928
+    # Re-calibrated on eyelid-seizure.MOV under mediapipe 0.10.18 (the
+    # latest aarch64-wheel-bearing release; required for Pi 5 deployment).
+    # MediaPipe 0.10.18 yields lower-amplitude blendshape values than 0.10.35,
+    # so the same target probabilities need a steeper weight + larger bias.
+    # baseline p95 → ~0.20, ictal p50 → ~0.75.
+    w_em_rhythmic: float = 59.676
     w_em_stillness: float = 1.0
-    w_em_bias: float = -6.547
+    w_em_bias: float = -24.183
 
     # oral_automatism: 1-3 Hz jaw motion
     w_oa_rhythmic: float = 4.5

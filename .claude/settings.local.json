@@ -7,7 +7,10 @@
       "WebSearch",
       "PowerShell(Start-Sleep -Seconds 13; $p = \\(Invoke-WebRequest -Uri \"http://127.0.0.1:8000/people\" -UseBasicParsing\\).Content | ConvertFrom-Json; Write-Output \\(\"body types served: \" + \\($p.types.body -join \", \"\\)\\); foreach \\($per in $p.people\\) { Write-Output \\(\"--- track \" + $per.track_id + \" | dom=\" + $per.dominant_type + \" ---\"\\); $sp = $per.seizure_probabilities; foreach \\($k in $sp.PSObject.Properties.Name\\) { Write-Output \\(\"  \" + $k.PadRight\\(20\\) + \" = \" + $sp.$k\\) } })",
       "WebFetch(domain:arxiv.org)",
-      "PowerShell(.venv\\\\Scripts\\\\python.exe -c \"import cv2; c = cv2.VideoCapture\\('eyelid-seizure.MOV'\\); print\\('opened=', c.isOpened\\(\\)\\); print\\('fps=', c.get\\(cv2.CAP_PROP_FPS\\)\\); print\\('frames=', int\\(c.get\\(cv2.CAP_PROP_FRAME_COUNT\\)\\)\\); print\\('size=', int\\(c.get\\(cv2.CAP_PROP_FRAME_WIDTH\\)\\), 'x', int\\(c.get\\(cv2.CAP_PROP_FRAME_HEIGHT\\)\\)\\); c.release\\(\\)\")"
+      "PowerShell(.venv\\\\Scripts\\\\python.exe -c \"import cv2; c = cv2.VideoCapture\\('eyelid-seizure.MOV'\\); print\\('opened=', c.isOpened\\(\\)\\); print\\('fps=', c.get\\(cv2.CAP_PROP_FPS\\)\\); print\\('frames=', int\\(c.get\\(cv2.CAP_PROP_FRAME_COUNT\\)\\)\\); print\\('size=', int\\(c.get\\(cv2.CAP_PROP_FRAME_WIDTH\\)\\), 'x', int\\(c.get\\(cv2.CAP_PROP_FRAME_HEIGHT\\)\\)\\); c.release\\(\\)\")",
+      "Bash(curl -s https://pypi.org/pypi/mediapipe/0.10.18/json)",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); reqs = d['info'].get\\('requires_dist'\\) or []; print\\('requires_dist:'\\); [print\\(' ', r\\) for r in reqs]\")",
+      "PowerShell(.venv\\\\Scripts\\\\python.exe scripts\\\\self_tune.py --type eyelid_myoclonia --source eyelid-seizure.MOV --baseline 30 --positive 30 2>$null | Select-Object -Last 12)"
     ]
   }
 }
