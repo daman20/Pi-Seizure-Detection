@@ -12,3 +12,9 @@ wheels/
 .mov
 .MOV
 *.MOV
+
+# Model weights — auto-downloaded; don't bloat the repo
+models/
+*.pt
+*.onnx
+*.task

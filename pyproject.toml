@@ -1,23 +1,13 @@
 [project]
-name = "seizure-detection"
-version = "0.1.0"
-description = "Add your description here"
+name = "pi-seizure-detection"
+version = "0.2.0"
+description = "Pi 5 webcam streamer that feeds the companion Seizure-Processor service over MJPEG. Inference and dashboard live in that other repo."
 requires-python = ">=3.11"
 dependencies = [
     "fastapi>=0.136.1",
-    "lap>=0.5.12",
-    # Pinned: 0.10.18 is the last release with aarch64 Linux wheels for the
-    # Pi 5. Newer releases only ship x86_64/macOS/win wheels and uv refuses
-    # to resolve on the Pi otherwise.
-    "mediapipe==0.10.18",
-    # mediapipe 0.10.18 caps numpy<2; opencv-python-headless<4.12 also stays
-    # compatible with numpy 1.x (4.12+ requires numpy>=2). scipy 1.17 happily
-    # works with numpy 1.26.x, which is what uv ends up resolving here.
     "numpy>=1.26.4,<2",
     "opencv-python-headless>=4.11.0.86,<4.12",
     "pydantic>=2.13.4",
     "pydantic-settings>=2.14.1",
-    "scipy>=1.13",
-    "ultralytics>=8.4.48",
     "uvicorn[standard]>=0.46.0",
 ]

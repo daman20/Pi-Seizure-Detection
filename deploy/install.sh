@@ -1,27 +1,28 @@
 #!/usr/bin/env bash
-# Pi-Seizure-Detection auto-deploy installer.
+# Pi-Seizure-Detection installer — sets up the MJPEG webcam streamer on a Pi 5.
+# The companion Seizure-Processor service (on a separate Linux box) consumes
+# this stream and does the actual seizure detection.
 #
-# First-time bootstrap (run on the Pi as the unprivileged service user, e.g. `aman`):
+# First-time bootstrap on the Pi (run as the unprivileged service user, e.g. `aman`):
 #
 #     git clone https://github.com/daman20/Pi-Seizure-Detection.git ~/seizure-detection \
 #       && bash ~/seizure-detection/deploy/install.sh
 #
-# Re-running the script is safe (idempotent). It pulls the latest commit,
-# refreshes deps, reinstalls the systemd unit if changed, and restarts the
-# service. The systemd unit itself also pulls + syncs on every restart, so
-# normal updates only require:
+# Re-running is safe (idempotent). The systemd unit also pulls + uv-syncs on
+# every restart, so updates need only:
 #
-#     sudo systemctl restart seizure-detection
+#     sudo systemctl restart seizure-streamer
 #
-# Logs:    sudo journalctl -u seizure-detection -f
-# Status:  sudo systemctl status seizure-detection
-# Dashboard reachable on the LAN at http://<pi-ip>:8000/
+# Logs:    sudo journalctl -u seizure-streamer -f
+# Status:  sudo systemctl status seizure-streamer
+# Stream:  http://<this-pi-ip>:8080/stream.mjpg
+# Preview: http://<this-pi-ip>:8080/
 
 set -euo pipefail
 
 REPO_URL="https://github.com/daman20/Pi-Seizure-Detection.git"
 INSTALL_DIR="${HOME}/seizure-detection"
-SERVICE_NAME="seizure-detection"
+SERVICE_NAME="seizure-streamer"
 SERVICE_USER="$(id -un)"
 
 log() { printf '\n\033[1;36m==>\033[0m %s\n' "$*"; }
@@ -55,20 +56,8 @@ else
 fi
 cd "${INSTALL_DIR}"
 
-log "uv sync (this may take a few minutes on first run — torch + mediapipe)"
+log "uv sync (streamer deps only — small, no torch/mediapipe)"
 uv sync
-
-if [ ! -f "models/face_landmarker.task" ]; then
-    log "Downloading MediaPipe face landmarker"
-    uv run python scripts/download_face_model.py
-else
-    log "Face landmarker model already present"
-fi
-
-# Uncomment to export YOLO to NCNN for ~2-4x CPU speedup on Pi 5. Adds ~5 min
-# to first install and produces models/yolo11n-pose_ncnn_model/.
-# log "Exporting YOLO11n-pose to NCNN"
-# uv run python scripts/export_ncnn.py
 
 log "Installing systemd unit"
 TMP_UNIT="$(mktemp)"
@@ -90,5 +79,7 @@ sudo systemctl --no-pager status "${SERVICE_NAME}" | head -15 || true
 
 IP="$(hostname -I | awk '{print $1}')"
 log "Done."
-log "Dashboard: http://${IP}:8000/"
-log "Logs:      sudo journalctl -u ${SERVICE_NAME} -f"
+log "Stream URL:  http://${IP}:8080/stream.mjpg"
+log "Preview:     http://${IP}:8080/"
+log "Logs:        sudo journalctl -u ${SERVICE_NAME} -f"
+log "Now configure the Linux processor box with SD_CAMERA_SOURCE=http://${IP}:8080/stream.mjpg"

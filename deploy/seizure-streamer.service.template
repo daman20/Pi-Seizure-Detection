@@ -1,5 +1,5 @@
 [Unit]
-Description=Seizure Detection — auto-pulls and runs on every boot/restart
+Description=Pi Seizure Detection — webcam MJPEG streamer
 After=network-online.target
 Wants=network-online.target
 
@@ -20,7 +20,7 @@ Restart=always
 RestartSec=10
 StartLimitIntervalSec=600
 StartLimitBurst=10
-TimeoutStartSec=300
+TimeoutStartSec=120
 StandardOutput=journal
 StandardError=journal
 
